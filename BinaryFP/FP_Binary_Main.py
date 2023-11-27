@@ -30,9 +30,10 @@ def feasibility_pump(c, A, b, log):
         logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     # Define the bounds here
+    # Put in 0 and 1 for a binary MIP
     bounds = {
         'min': 0,
-        'max': 5,
+        'max': 1,
     }
 
     rx, stat = base_sol(c, A, b, bounds=[(bounds['min'], bounds['max'])])

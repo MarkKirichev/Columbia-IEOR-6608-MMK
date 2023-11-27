@@ -30,8 +30,9 @@ def base_sol(c, A, b, **kwargs):
         bounds = [(0, 1)] * len(c)
     else:
         bounds = kwargs['bounds'] * len(c)
-    res = optimize.linprog(c, A_ub=A, b_ub=b, bounds=bounds)
 
+    print(type(A))
+    res = optimize.linprog(c, A_ub=A, b_ub=b, bounds=bounds)
     print(res)
 
     if res.success:

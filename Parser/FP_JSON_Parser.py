@@ -35,6 +35,9 @@ def constraints(data):
         eq, val = parse_constr(constr)
         constr_mat.append(eq)
         constr_val.append(val)
+
+    print(f"Constraint matrix: {type(np.array(constr_mat)[0])}")
+
     return np.array(constr_mat), np.array(constr_val)
 
 
