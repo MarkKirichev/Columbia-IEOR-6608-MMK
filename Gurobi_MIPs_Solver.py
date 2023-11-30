@@ -6,9 +6,11 @@ filename = '10teams.mps'
 file_path = file_root + filename
 
 
-def model_to_json(file_path, output_file_name):
+def model_to_json(file_path, output_file_path):
     # Read the model
     model = read(file_path)
+
+    # If file_path doesn't exist, insert a raised exception here ... TODO
 
     # Extract objective function
     objective = [model.getObjective().getVar(i).getAttr("Obj") for i in range(model.numVars)]
@@ -36,19 +38,23 @@ def model_to_json(file_path, output_file_name):
         print(sense)
         rhs = constr.getAttr("RHS")
 
+        constraints_list = []
+
         # Convert Gurobi sense to 'ge' or 'le'
         if sense == GRB.LESS_EQUAL:
             constraint = {"eq": result_list, "le": rhs}
+            constraints_list.append(constraint)
         elif sense == GRB.GREATER_EQUAL:
             constraint = {"eq": result_list, "ge": rhs}
+            constraints_list.append(constraint)
         else:
-            constraint = {"eq": result_list, "le": rhs} # We'll call the EQ equations both LEQ and GEQ equations for now.
-            # continue  # Skip if it's not a 'ge' or 'le' constraint
-            constraints.append(constraint)
-            constraint = {"eq": result_list, "ge": rhs}
+            constraint_le = {"eq": result_list, "le": rhs} # We'll call the EQ equations
+            constraint_ge = {"eq": result_list, "ge": rhs} # both LEQ and GEQ equations for now.
+            constraints_list.append(constraint_le)
+            constraints_list.append(constraint_ge)
 
-        constraints.append(constraint)
-        print(len(constraints))
+        # Add all of the constraints to the constraints_list
+        [constraints.append(item) for item in constraints_list]
 
     # Construct JSON
     data = {
@@ -56,10 +62,10 @@ def model_to_json(file_path, output_file_name):
         "constrs": constraints
     }
 
-    with open(f'{output_file_name}.json', 'w') as f:
+    with open(f'{output_file_path}.json', 'w') as f:
         json.dump(data, f, indent=4)
 
-    return json.dumps(data, indent=4)
+    return output_file_path
 
 
 def solve_mip_model(file_path):
