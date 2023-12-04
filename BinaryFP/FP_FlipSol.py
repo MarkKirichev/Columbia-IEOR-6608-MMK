@@ -5,20 +5,31 @@
 from secrets import randbelow
 
 
-def fp_error(x, rx):
-    tmp = (abs(i - j) for i, j in zip(x, rx))
-    out = {e: i for i, e in enumerate(tmp)}
-    return out
+def fp_error(original, rounded):
+    """
+    Calculate the error between the original and rounded solutions.
+    Returns a dictionary mapping the error to the index in the solution.
+    """
+    error_to_index = {
+        abs(orig - round_val): idx for idx, (orig, round_val) in enumerate(
+            zip(original, rounded)
+        )
+    }
+    return error_to_index
 
+def flip_solution(original, rounded):
+    """
+    Flip the solution based on the calculated error.
+    Randomly selects a starting point and flips the bits in the rounded solution from that point onwards.
+    """
+    error_dict = fp_error(original=original,
+                          rounded=rounded)
+    sorted_errors = sorted(error_dict.keys())
 
-def flip_solution(x, rx):
-    err = fp_error(x, rx)
-    sort = sorted(err.keys())
+    end = len(original)
+    start = randbelow(end - 1) + 1
+    for error in sorted_errors[start:end]:
+        index = error_dict[error]
+        rounded[index] = (rounded[index] + 1) % 2
 
-    end = len(x)
-    begin = randbelow(end - 1) + 1
-    for k in sort[begin:end]:
-        i = err[k]
-        rx[i] = (rx[i] + 1) % 2
-
-    return rx
+    return rounded

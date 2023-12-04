@@ -5,13 +5,14 @@
 import numpy as np
 
 def fp_round(x):
-    tmp = map(round, x)
-    return np.array(list(tmp))
+    return np.array(
+        [round(item) for item in x]
+    )
 
 
 def is_integer(x):
-    for i in x:
-        if not int(i) == i:
+    for item in x:
+        if not int(item) == item:
             return False
     return True
 

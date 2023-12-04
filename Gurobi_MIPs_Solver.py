@@ -1,16 +1,10 @@
 import json
 from gurobipy import read, GRB
 
-file_root = './DatabaseMIPs/'
-filename = '10teams.mps'
-file_path = file_root + filename
-
 
 def model_to_json(file_path, output_file_path):
     # Read the model
     model = read(file_path)
-
-    # If file_path doesn't exist, insert a raised exception here ... TODO
 
     # Extract objective function
     objective = [model.getObjective().getVar(i).getAttr("Obj") for i in range(model.numVars)]
@@ -21,7 +15,6 @@ def model_to_json(file_path, output_file_path):
     for num_constr, constr in enumerate(model.getConstrs()):
         expr = model.getRow(constr)
 
-        # print(f"Expression {num_constr+1}: {expr}")
         total_variables = len(objective)
 
         # Extracting variable indices from the expression
@@ -65,7 +58,7 @@ def model_to_json(file_path, output_file_path):
     with open(f'{output_file_path}.json', 'w') as f:
         json.dump(data, f, indent=4)
 
-    return output_file_path
+    return f'{output_file_path}.json'
 
 
 def solve_mip_model(file_path):
@@ -78,8 +71,6 @@ def solve_mip_model(file_path):
     # Check if the model has a feasible solution
     if model.status == GRB.OPTIMAL:
         print("Optimal solution found.")
-        # You can access the solution values, objective value, etc., here
-        # For example, to print the objective value:
         print(f"Objective Value: {model.objVal}")
     elif model.status == GRB.INFEASIBLE:
         print("Model is infeasible.")
@@ -98,13 +89,3 @@ def gurobi_reader(file_path):
     for i in range(1, len(constrs) + 1):
         print(f"Constraint #: {i}")
         print(model.getRow(constrs[i-1]))
-
-
-# Replace with the path to your file
-# json_data = model_to_json(file_path)
-
-# print(json_data)
-# solve_mip_model(file_path)
-
-model_to_json(file_path=file_path,
-              output_file_name='Test_10teams')

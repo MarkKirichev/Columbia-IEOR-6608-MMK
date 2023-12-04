@@ -2,6 +2,10 @@
 
 # Copyright (c) 2023 Mark Kirichev
 
+import requests
+import gzip
+import os
+
 from argparse import ArgumentParser
 from BinaryFP.FP_Binary_Main import feasibility_pump
 from Parser.FP_Instance_Loader import load_instance, list_parsers
@@ -48,6 +52,55 @@ def solve_instance(file_name, log):
         print("Unable to find a feasible solution")
 
 
+def get_miplib_file(miplib_file_name):
+    # Base URL for MIPLIB files
+    base_url = "https://miplib.zib.de/WebData/instances/"
+
+    # Construct the URL for the .mps file
+    file_url = f"{base_url}{miplib_file_name}.mps.gz"
+
+    # Directory to store the .mps file
+    directory = "DatabaseMIPs"
+
+    # Ensure the directory exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Temporary path for the downloaded .gz file
+    temp_gz_path = f"{directory}/{miplib_file_name}.mps.gz"
+
+    # Final path for the unpacked .mps file
+    final_mps_path = f"{directory}/{miplib_file_name}.mps"
+
+    # Attempt to download the .mps.gz file
+    with requests.get(file_url, stream=True) as r:
+        if r.status_code == 200:
+            total_size = int(r.headers.get('content-length', 0))
+            block_size = 1024 # 1 Kibibyte
+            progress_bar = ""
+
+            print(f"Downloading {miplib_file_name}.mps.gz")
+            with open(temp_gz_path, 'wb') as file:
+                for data in r.iter_content(block_size):
+                    file.write(data)
+                    progress_bar += "="
+                    print(f"\rProgress: [{'=' * (len(progress_bar)//10)}{' ' * ((total_size//block_size//10) - len(progress_bar)//10)}] {len(progress_bar)*block_size/total_size*100:.2f}%", end="")
+            print("\nDownload complete.")
+
+            # Unpack the .gz file and save the .mps file
+            with gzip.open(temp_gz_path, 'rb') as gz_file:
+                with open(final_mps_path, 'wb') as mps_file:
+                    mps_file.write(gz_file.read())
+
+            # Optionally, remove the downloaded .gz file after unpacking
+            os.remove(temp_gz_path)
+
+            print(f"File unpacked and saved to {final_mps_path}")
+            return final_mps_path
+        else:
+            raise FileNotFoundError(f"File '{miplib_file_name}' not found in MIPLIB.")
+
+
 def main():
     # args = arg_parser()
     # if args.list:
@@ -67,22 +120,29 @@ def main():
         print("Example files are '10teams', 'air04', 'fast0507', 'vmp2', etc.")
         miplib_file_name = input()
         mps_file = get_miplib_file(miplib_file_name)
-        mps_file_full = mps_file + '.mps'
 
         if mps_file == "No such file":
             raise NameError("There's no such MIPLIB .mps file. Please, check the spelling and try again.")
         else:
-            print(f"Starting the Feasibility Pump with input: {mps_file_full}")
-            json_file_name = model_to_json(file_path=f'DatabaseMIPs/{mps_file_full}',
-                                           output_file_path=f'DatabaseMIPs/{mps_file}.json')
+            print(f"Starting the Feasibility Pump with input: {mps_file}")
+            json_file_name = model_to_json(file_path=f'{mps_file}',
+                                           output_file_path=f'{mps_file[:-4]}')
             solve_instance(json_file_name, "")
 
     if type_of_file == "2":
         print("Please, indicate the name and location of the .json file that we should include as an input.\n")
-        test_file_name = input()
-        # Check if the file exists ... TODO
-        print(f"Starting the Feasibility Pump with input: {test_file_name}")
-        solve_instance(test_file_name, "")
+        test_file_location = input()
+
+        try:
+            with open(test_file_location, 'r') as mip_file:
+                json_file_name = model_to_json(file_path=f'{test_file_location}',
+                                               output_file_path=f'{mip_file}.json')
+                print(f"Starting the Feasibility Pump with input: {mip_file}")
+                print(json_file_name)
+                solve_instance(json_file_name, "")
+
+        except FileNotFoundError:
+            print("No such file exists!")
 
 if __name__ == "__main__":
     main()

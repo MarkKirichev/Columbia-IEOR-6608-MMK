@@ -17,9 +17,10 @@ Instance = namedtuple(
 LOADERS = { "json": load_json_instance }
 
 def get_extension(file_name: str):
-    index = file_name.find(".")
-    if not index == -1:
-        return file_name[index + 1 :]
+    # Split the filename by periods and get the last part as the extension
+    parts = file_name.split(".")
+    if len(parts) > 1:
+        return parts[-1]
     else:
         return None
 
@@ -28,5 +29,8 @@ def list_parsers():
 
 def load_instance(file_name):
     ext = get_extension(file_name)
+
+    print(file_name)
+
     load = LOADERS[ext]
     return load(file_name)
