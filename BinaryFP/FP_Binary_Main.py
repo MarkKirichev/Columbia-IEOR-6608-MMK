@@ -9,19 +9,10 @@ from .FP_FlipSol import flip_solution
 
 
 def need_update(x, rx):
-    for i, j in zip(x, rx):
-        if round(i) != j:
-            return True
-    return False
-
+    return any(round(i) != j for i, j in zip(x, rx))
 
 def update_round(sol, int_sol):
-    if need_update(sol, int_sol):
-        out = fp_round(sol)
-    else:
-        out = flip_solution(sol, int_sol)
-    return out
-
+    return fp_round(sol) if need_update(sol, int_sol) else flip_solution(sol, int_sol)
 
 def feasibility_pump(c, A, b, log):
 
