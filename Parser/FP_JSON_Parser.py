@@ -1,5 +1,4 @@
 #! /usr/bin/python
-
 # Copyright (c) 2023 Mark Kirichev
 
 import json
@@ -14,7 +13,6 @@ def objective_function(data):
         array *= -1
     return array
 
-
 def parse_constr(constr):
     eq = constr["eq"]
     try:
@@ -24,7 +22,6 @@ def parse_constr(constr):
         val = constr["le"]
         ceq = np.array(eq)
     return ceq, val
-
 
 def constraints(data):
 
@@ -37,15 +34,12 @@ def constraints(data):
         constr_val.append(val)
 
     print(f"Constraint matrix: {type(np.array(constr_mat)[0])}")
-
     return np.array(constr_mat), np.array(constr_val)
-
 
 def parse_data(data):
     obj = objective_function(data)
     mat, val = constraints(data)
     return obj, mat, val
-
 
 def load_json_instance(file_name):
     with open(file_name) as file:

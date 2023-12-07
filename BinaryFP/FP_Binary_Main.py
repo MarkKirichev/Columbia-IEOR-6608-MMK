@@ -1,10 +1,9 @@
 #! /usr/bin/python
-
 # Copyright (c) 2023 Mark Kirichev
 
 import logging
 
-from .FP_ArgMin import base_sol, build_constr, arg_min
+from .FP_ArgMin import find_base_solution, build_constraints, find_arg_min
 from .FP_Utils import is_integer, is_feasible, fp_round
 from .FP_FlipSol import flip_solution
 
@@ -36,7 +35,8 @@ def feasibility_pump(c, A, b, log):
         'max': 1,
     }
 
-    rx, stat = base_sol(c, A, b, bounds=[(bounds['min'], bounds['max'])])
+    rx, stat = find_base_solution(c, A, b, bounds=[(bounds['min'],
+                                                    bounds['max'])])
     logging.info('solved LP relaxation')
 
     print('solved LP relaxation')
@@ -46,7 +46,7 @@ def feasibility_pump(c, A, b, log):
         print('LP relaxation has no solution - done')
         return None, False
 
-    constr = build_constr(A, b)
+    constr = build_constraints(A, b)
 
     if is_feasible(rx, A, b):
         logging.info('rounded solution is feasible - done')
@@ -55,7 +55,7 @@ def feasibility_pump(c, A, b, log):
 
     for _ in range(len(c) * 10):
 
-        tmp = arg_min(rx, constr)
+        tmp = find_arg_min(rx, constr)
         logging.info('solved fp delta')
         print('solved fp delta')
         if is_integer(tmp):

@@ -1,3 +1,6 @@
+#! /usr/bin/python
+# Copyright (c) 2023 Mark Kirichev
+
 import json
 from gurobipy import read, GRB
 
@@ -81,9 +84,7 @@ def solve_mip_model(file_path):
 
 
 def gurobi_reader(file_path):
-
     model = read(file_path)
-
     constrs = model.getConstrs()
 
     for i in range(1, len(constrs) + 1):

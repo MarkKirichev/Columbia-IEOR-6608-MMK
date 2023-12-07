@@ -1,7 +1,10 @@
+#! /usr/bin/python
+# Copyright (c) 2023 Mark Kirichev
+
 import json
 import random
 
-def generate_mip_json(num_vars=2025, num_constr=230):
+def generate_mip_json(num_vars, num_constr):
     # Randomly generate coefficients for the objective function
     objective = [random.randint(1, 10) for _ in range(num_vars)]
 
@@ -24,9 +27,17 @@ def generate_mip_json(num_vars=2025, num_constr=230):
 
     return mip_data
 
-# Generate the JSON data
-mip_json = generate_mip_json()
+if __name__ == '__main__':
+    output_file_name = input()
 
-# Print the JSON data
-with open('Test_random2025.json', 'w') as f:
-    json.dump(mip_json, f, indent=4)
+    # Set the number of variables and constraints
+    num_vars = 2025
+    num_constr = 230
+
+    # Generate the JSON data
+    mip_json = generate_mip_json(num_vars=num_vars,
+                                 num_constr=num_constr)
+
+    # Write the JSON data into a file
+    with open(f'{output_file_name}.json', 'w') as f:
+        json.dump(mip_json, f, indent=4)

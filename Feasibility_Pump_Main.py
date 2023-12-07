@@ -1,9 +1,9 @@
 #! /usr/bin/python
-
 # Copyright (c) 2023 Mark Kirichev
 
 import requests
 import gzip
+import sys
 import os
 
 from argparse import ArgumentParser
@@ -13,7 +13,7 @@ from Gurobi_MIPs_Solver import model_to_json
 
 
 def arg_parser():
-    parser = ArgumentParser(description='Find a feasible solution to a Binary Programming problem')
+    parser = ArgumentParser(description='Find a feasible solution to a Binary Programming problem!')
 
     input_group = parser.add_mutually_exclusive_group(required=True)
 
@@ -35,7 +35,7 @@ def arg_parser():
         '--log',
         default=False,
         action='store_true',
-        help='enable informational logging'
+        help='logging will be displayed'
     )
 
     return parser.parse_args()
@@ -52,7 +52,7 @@ def solve_instance(file_name, log):
         print("Unable to find a feasible solution")
 
 
-def get_miplib_file(miplib_file_name):
+def get_miplib_file(miplib_file_name, remove_tar_gz=True):
     # Base URL for MIPLIB files
     base_url = "https://miplib.zib.de/WebData/instances/"
 
@@ -76,7 +76,7 @@ def get_miplib_file(miplib_file_name):
     with requests.get(file_url, stream=True) as r:
         if r.status_code == 200:
             total_size = int(r.headers.get('content-length', 0))
-            block_size = 1024 # 1 Kibibyte
+            block_size = 1024 # 1 KB
             progress_bar = ""
 
             print(f"Downloading {miplib_file_name}.mps.gz")
@@ -93,7 +93,8 @@ def get_miplib_file(miplib_file_name):
                     mps_file.write(gz_file.read())
 
             # Optionally, remove the downloaded .gz file after unpacking
-            os.remove(temp_gz_path)
+            if remove_tar_gz:
+                os.remove(temp_gz_path)
 
             print(f"File unpacked and saved to {final_mps_path}")
             return final_mps_path
@@ -101,14 +102,17 @@ def get_miplib_file(miplib_file_name):
             raise FileNotFoundError(f"File '{miplib_file_name}' not found in MIPLIB.")
 
 
-def main():
-    # args = arg_parser()
-    # if args.list:
-    #     for i in list_parsers():
-    #         print(i)
-    # else:
-    #    solve_instance(args.instance, args.log)
+def main(args_parse=True):
+    if args_parse:
+        args = arg_parser()
+        if args.list:
+            for i in list_parsers():
+                print(i)
+        else:
+           solve_instance(args.instance, args.log)
+        return
 
+    # if no arguments are passed, prompt for the file or for the file to be downloaded from MIPLIB and then processed
     print("Please, indicate the what file should be used an input to the FP: \n \t 1) MIPLIB file \n \t 2) Personal file")
     type_of_file = input()
 
@@ -145,4 +149,12 @@ def main():
             print("No such file exists!")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        instance = sys.argv[1]
+        print(f"Instance passed: {instance}")
+        main(args_parse=True)
+    else:
+        # If no instance is passed, prompt for user input
+        main(args_parse=False)
+
+    print("Binary Feasbility Pump terminated!")
